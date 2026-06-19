@@ -405,6 +405,124 @@ body {
   font-size: 0.75rem; font-weight: 700; cursor: pointer;
 }
 
+/* ── LEGACY FONT CONVERTER ───────────────────────────────── */
+.converter-section {
+  margin-top: 1.25rem;
+  border-top: 1px dashed var(--border-light);
+  padding-top: 1rem;
+}
+.converter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 0;
+  width: 100%;
+  text-align: left;
+}
+.converter-toggle .arrow {
+  font-size: 0.65rem;
+  transition: transform 0.2s;
+  color: var(--gold-primary);
+}
+.converter-toggle.open .arrow { transform: rotate(90deg); }
+.converter-body {
+  display: none;
+  margin-top: 0.85rem;
+}
+.converter-body.open { display: block; }
+.converter-font-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+.pill {
+  padding: 0.25rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--border-light);
+  background: white;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pill.selected {
+  background: var(--navy-dark);
+  color: var(--gold-light);
+  border-color: var(--navy-dark);
+}
+.converter-textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.88rem;
+  font-family: monospace;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  outline: none;
+  resize: vertical;
+  min-height: 80px;
+  background: #f8fafc;
+  color: var(--text-primary);
+}
+.converter-textarea:focus { border-color: var(--gold-primary); }
+.converter-result {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+  font-family: var(--font-gurmukhi);
+  line-height: 1.8;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--gold-light);
+  color: var(--navy-dark);
+  min-height: 60px;
+  word-break: break-word;
+  white-space: pre-wrap;
+  display: none;
+}
+.converter-result.show { display: block; }
+.converter-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  flex-wrap: wrap;
+}
+.btn-convert {
+  background: var(--navy-dark);
+  color: white;
+  border: none;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-use-converted {
+  background: var(--gold-primary);
+  color: white;
+  border: none;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: none;
+}
+.btn-use-converted.show { display: inline-block; }
+.converter-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.4rem;
+  font-style: italic;
+}
+
 /* ── FOOTER ──────────────────────────────────────────────── */
 .app-footer {
   text-align: center; padding: 2.5rem 1rem;
@@ -490,6 +608,34 @@ body {
       <label for="noticeSignee">Shared By — ਵੱਲੋਂ</label>
       <input type="text" id="noticeSignee" value="Community Team">
     </div>
+    <!-- LEGACY FONT CONVERTER -->
+    <div class="converter-section">
+      <button class="converter-toggle" id="converterToggle" onclick="toggleConverter()">
+        <span class="arrow">▶</span>
+        ਗੁਰਮੁਖੀ Converter — Paste legacy PDF text here
+      </button>
+      <div class="converter-body" id="converterBody">
+        <p class="converter-hint">Select the font the PDF was made with, paste the garbled text, then tap Convert.</p>
+        <div class="converter-font-pills" id="fontPills">
+          <button class="pill selected" onclick="selectFont(this,'brahmi')">Brahmi / Brahmi Punjabi</button>
+          <button class="pill" onclick="selectFont(this,'aps')">APS / APS-DV-Priya</button>
+          <button class="pill" onclick="selectFont(this,'satluj')">Satluj</button>
+          <button class="pill" onclick="selectFont(this,'gurbaniakhar')">GurbaniAkhar / Gurbani Slim</button>
+          <button class="pill" onclick="selectFont(this,'anmollipi')">Anmol Lipi</button>
+        </div>
+        <textarea class="converter-textarea" id="converterInput"
+          rows="5" placeholder="Paste the copied PDF text here e.g.  siqgur pRswid ]"></textarea>
+        <div class="converter-actions">
+          <button class="btn-convert" onclick="runConversion()">🔄 Convert to ਗੁਰਮੁਖੀ</button>
+          <button class="btn-use-converted" id="btnUseConverted" onclick="useConvertedText()">✅ Use this text →</button>
+        </div>
+        <div class="converter-result gurmukhi-text" id="converterResult"></div>
+        <p class="converter-hint" id="converterHint" style="display:none;">
+          Tap "Use this text →" to copy the converted text into the Message Content field above.
+        </p>
+      </div>
+    </div>
+
     <div class="admin-actions">
       <button class="btn btn-primary" id="submitFormBtn" onclick="executePublish()">Share with Community</button>
       <button class="btn btn-outline" onclick="cancelFormModification()">Dismiss</button>
@@ -982,6 +1128,202 @@ function escapeHtmlString(s) {
   if (!s) return '';
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
           .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+// ── LEGACY GURMUKHI FONT CONVERTER ───────────────────────────────────────────
+// Converts ASCII-encoded legacy Punjabi font text → proper Unicode Gurmukhi.
+// Supports: Brahmi/Brahmi Punjabi, APS-DV-Priya, Satluj, GurbaniAkhar, Anmol Lipi
+
+let selectedFontKey = 'brahmi';
+
+function toggleConverter() {
+  const btn  = document.getElementById('converterToggle');
+  const body = document.getElementById('converterBody');
+  btn.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+function selectFont(el, key) {
+  document.querySelectorAll('#fontPills .pill').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedFontKey = key;
+  // clear previous result when font changes
+  document.getElementById('converterResult').classList.remove('show');
+  document.getElementById('btnUseConverted').classList.remove('show');
+  document.getElementById('converterHint').style.display = 'none';
+}
+
+function useConvertedText() {
+  const result = document.getElementById('converterResult').textContent;
+  if (!result) return;
+  // Append to existing content or set fresh
+  const cur = noticeContent.value.trim();
+  noticeContent.value = cur ? cur + '\n' + result : result;
+  noticeContent.classList.add('gurmukhi-input');
+  noticeContent.dispatchEvent(new Event('input'));
+  displayToastAlert('✅ Converted text added to Message Content.');
+}
+
+function runConversion() {
+  const raw = document.getElementById('converterInput').value;
+  if (!raw.trim()) { displayToastAlert('⚠️ Paste some text first.'); return; }
+
+  let converted = '';
+  switch (selectedFontKey) {
+    case 'brahmi':        converted = convertBrahmi(raw);       break;
+    case 'aps':           converted = convertAPS(raw);          break;
+    case 'satluj':        converted = convertSatluj(raw);       break;
+    case 'gurbaniakhar':  converted = convertGurbaniAkhar(raw); break;
+    case 'anmollipi':     converted = convertAnmolLipi(raw);    break;
+    default:              converted = raw;
+  }
+
+  const resultEl = document.getElementById('converterResult');
+  const useBtn   = document.getElementById('btnUseConverted');
+  const hint     = document.getElementById('converterHint');
+
+  resultEl.textContent = converted;
+  resultEl.classList.add('show');
+  useBtn.classList.add('show');
+  hint.style.display = 'block';
+}
+
+// ── BRAHMI / BRAHMI PUNJABI ───────────────────────────────────────────────────
+// Most widely used legacy Punjabi font in North India
+function convertBrahmi(text) {
+  // Character-level map: ASCII/Latin → Unicode Gurmukhi
+  const map = {
+    // Vowel signs & special
+    'a': 'ਾ',  'A': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
+    'y': 'ੇ',  'Y': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
+    'M': 'ਂ',  'N': 'ਂ',  'W': 'ਾਂ', 'ü': 'ੁ',  'Ü': 'ੂ',
+    '^': 'ੱ',  '`': 'ੰ',  '~': 'ੱ',  '&': 'ੰ',
+    // Halant / virama
+    '§': '੍',  '%': '੍',
+    // Ik Onkar & Gurmukhi numerals
+    '<': 'ੴ',  '>': '॥',  ']': '॥',  '[': '।',  '|': '।',
+    '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
+    '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
+    // Consonants
+    'q': 'ਤ',  'w': 'ਵ',  'e': 'ੲ',  'r': 'ਰ',  't': 'ਟ',
+    'p': 'ਪ',  's': 'ਸ',  'd': 'ਦ',  'f': 'ਡ',  'g': 'ਗ',
+    'h': 'ਹ',  'j': 'ਜ',  'k': 'ਕ',  'l': 'ਲ',  'z': 'ਜ਼',
+    'x': 'ਣ',  'c': 'ਚ',  'v': 'ਭ',  'b': 'ਬ',  'n': 'ਨ',
+    'm': 'ਮ',  'Q': 'ਠ',  'W': 'ਾਂ', 'E': 'ਉ',  'R': 'ੜ',
+    'T': 'ਥ',  'P': 'ਫ',  'S': 'ਸ਼', 'D': 'ਧ',  'F': 'ਢ',
+    'G': 'ਘ',  'H': 'ਹ਼', 'J': 'ਝ',  'K': 'ਖ',  'L': 'ਲ਼',
+    'Z': 'ਜ਼', 'X': 'ਆ',  'C': 'ਛ',  'V': 'ਭ',  'B': 'ਙ',
+    'N': 'ਂ',
+    // Subjoined consonants (pairin)
+    '®': '੍ਰ', 'µ': '੍ਵ', '´': '੍ਹ', '£': '੍ਯ',
+    // Muchhant / open letters
+    'ç': 'ਸ',  'å': 'ਅ',  'é': 'ੲ',  'ï': 'ੲ',  'ë': 'ੲ',
+    // Misc
+    '@': 'ੳ',  '#': 'ਙ',  '$': 'ਞ',  '*': 'ਖ਼', '(': 'ਗ਼',
+    ')': 'ਜ਼', '-': '-',   ' ': ' ',  '\n': '\n', '\r': '\r',
+  };
+
+  // Multi-char sequences first (order matters)
+  let out = text;
+  // Common two-char sequences in Brahmi
+  const multi = [
+    ['sR', 'ਸ੍ਰ'], ['pR', 'ਪ੍ਰ'], ['bR', 'ਬ੍ਰ'], ['kR', 'ਕ੍ਰ'],
+    ['gR', 'ਗ੍ਰ'], ['DR', 'ਧ੍ਰ'], ['nR', 'ਨ੍ਰ'], ['qR', 'ਤ੍ਰ'],
+    ['mR', 'ਮ੍ਰ'], ['vR', 'ਵ੍ਰ'], ['dR', 'ਦ੍ਰ'], ['hR', 'ਹ੍ਰ'],
+    ['PR', 'ਫ੍ਰ'], ['SR', 'ਸ਼੍ਰ'],
+    ['ky', 'ਕੇ'], ['hy', 'ਹੇ'], // common combos
+  ];
+  multi.forEach(([from, to]) => {
+    out = out.split(from).join(to);
+  });
+
+  // Single char map
+  return out.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
+}
+
+// ── APS / APS-DV-PRIYA ────────────────────────────────────────────────────────
+function convertAPS(text) {
+  const map = {
+    'a': 'ਾ',  'A': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
+    'e': 'ੇ',  'E': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
+    'M': 'ਂ',  'N': 'ਂ',  'm': 'ਮ',  'n': 'ਨ',
+    'k': 'ਕ',  'K': 'ਖ',  'g': 'ਗ',  'G': 'ਘ',  'c': 'ਚ',  'C': 'ਛ',
+    'j': 'ਜ',  'J': 'ਝ',  'q': 'ਤ',  'Q': 'ਠ',  'd': 'ਦ',  'D': 'ਧ',
+    'p': 'ਪ',  'P': 'ਫ',  'b': 'ਬ',  'B': 'ਭ',  'r': 'ਰ',  'R': 'ੜ',
+    'l': 'ਲ',  'v': 'ਵ',  's': 'ਸ',  'S': 'ਸ਼', 'h': 'ਹ',
+    'f': 'ਡ',  'F': 'ਢ',  't': 'ਟ',  'T': 'ਥ',  'x': 'ਣ',  'X': 'ਆ',
+    'z': 'ਜ਼', 'Z': 'ਖ਼', 'w': 'ਵ',
+    '^': 'ੱ',  '`': 'ੰ',  '~': 'ੱ',
+    '<': 'ੴ',  ']': '॥',  '[': '।',
+    '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
+    '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
+    ' ': ' ',  '\n': '\n',
+  };
+  return text.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
+}
+
+// ── SATLUJ ────────────────────────────────────────────────────────────────────
+function convertSatluj(text) {
+  const map = {
+    'a': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
+    'y': 'ੇ',  'Y': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
+    'M': 'ਂ',  'N': 'ੰ',  '^': 'ੱ',  '`': 'ੰ',
+    'q': 'ਤ',  'w': 'ਵ',  'e': 'ੲ',  'r': 'ਰ',  't': 'ਟ',
+    'p': 'ਪ',  's': 'ਸ',  'd': 'ਦ',  'f': 'ਡ',  'g': 'ਗ',
+    'h': 'ਹ',  'j': 'ਜ',  'k': 'ਕ',  'l': 'ਲ',  'z': 'ਜ਼',
+    'x': 'ਣ',  'c': 'ਚ',  'v': 'ਭ',  'b': 'ਬ',  'n': 'ਨ',
+    'm': 'ਮ',  'Q': 'ਠ',  'E': 'ਉ',  'R': 'ੜ',  'T': 'ਥ',
+    'P': 'ਫ',  'S': 'ਸ਼', 'D': 'ਧ',  'F': 'ਢ',  'G': 'ਘ',
+    'J': 'ਝ',  'K': 'ਖ',  'C': 'ਛ',  'B': 'ਭ',
+    '<': 'ੴ',  ']': '॥',  '[': '।',
+    '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
+    '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
+    ' ': ' ',  '\n': '\n',
+  };
+  return text.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
+}
+
+// ── GURBANIAKHAR / GURBANI SLIM ───────────────────────────────────────────────
+function convertGurbaniAkhar(text) {
+  const map = {
+    'a': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
+    'y': 'ੇ',  'Y': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
+    'M': 'ਂ',  'N': 'ੰ',  '^': 'ੱ',
+    'q': 'ਤ',  'w': 'ਵ',  'e': 'ੲ',  'r': 'ਰ',  't': 'ਟ',
+    'p': 'ਪ',  's': 'ਸ',  'd': 'ਦ',  'f': 'ਡ',  'g': 'ਗ',
+    'h': 'ਹ',  'j': 'ਜ',  'k': 'ਕ',  'l': 'ਲ',
+    'x': 'ਣ',  'c': 'ਚ',  'v': 'ਵ',  'b': 'ਬ',  'n': 'ਨ',
+    'm': 'ਮ',  'Q': 'ਠ',  'R': 'ੜ',  'T': 'ਥ',
+    'P': 'ਫ',  'S': 'ਸ਼', 'D': 'ਧ',  'F': 'ਢ',  'G': 'ਘ',
+    'J': 'ਝ',  'K': 'ਖ',  'C': 'ਛ',
+    '<': 'ੴ',  '>': '॥',  ']': '॥',  '[': '।',
+    '®': '੍ਰ', '©': 'ੴ',
+    '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
+    '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
+    ' ': ' ',  '\n': '\n',
+  };
+  return text.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
+}
+
+// ── ANMOL LIPI ────────────────────────────────────────────────────────────────
+function convertAnmolLipi(text) {
+  const map = {
+    'a': 'ਾ',  'A': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
+    'y': 'ੇ',  'Y': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
+    'M': 'ਂ',  'N': 'ੰ',  '^': 'ੱ',  '`': 'ੰ',
+    'q': 'ਤ',  'w': 'ਵ',  'e': 'ੲ',  'r': 'ਰ',  't': 'ਟ',
+    'p': 'ਪ',  's': 'ਸ',  'd': 'ਦ',  'f': 'ਡ',  'g': 'ਗ',
+    'h': 'ਹ',  'j': 'ਜ',  'k': 'ਕ',  'l': 'ਲ',  'z': 'ਜ਼',
+    'x': 'ਣ',  'c': 'ਚ',  'v': 'ਭ',  'b': 'ਬ',  'n': 'ਨ',
+    'm': 'ਮ',  'Q': 'ਠ',  'E': 'ਉ',  'R': 'ੜ',  'T': 'ਥ',
+    'P': 'ਫ',  'S': 'ਸ਼', 'D': 'ਧ',  'F': 'ਢ',  'G': 'ਘ',
+    'J': 'ਝ',  'K': 'ਖ',  'C': 'ਛ',  'B': 'ਭ',
+    '<': 'ੴ',  ']': '॥',  '[': '।',
+    '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
+    '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
+    ' ': ' ',  '\n': '\n',
+  };
+  return text.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
 }
 </script>
 </body>
