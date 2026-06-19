@@ -761,6 +761,7 @@ function handleDeepLink() {
   setTimeout(() => clearInterval(attempt), 8000); // give up after 8s
 }
 
+function friendlyAuthError(code) {
   const map = {
     'auth/invalid-email':      'Invalid email address.',
     'auth/user-not-found':     'No admin account found for this email.',
@@ -772,28 +773,57 @@ function handleDeepLink() {
 }
 
 // ── REALTIME DATA SYNC ────────────────────────────────────────────────────────
-noticesRef.orderByChild('timestamp').on('value', snapshot => {
-  const payload = snapshot.val();
-  if (!payload) {
-    liveNoticeWrapper.innerHTML = `<div class="empty-box"><p>📋 No active community messages right now.</p></div>`;
-    controlBar.style.display = 'none';
-    archiveSection.style.display = 'none';
-    compiledCollection = [];
-    return;
+let dataLoadTimeout = setTimeout(() => {
+  if (compiledCollection.length === 0) {
+    liveNoticeWrapper.innerHTML = `
+      <div class="empty-box">
+        <p>⏳ Waiting for community messages...</p>
+        <p style="font-size:0.8rem;margin-top:0.5rem;color:#94a3b8;">If this persists, check your internet connection.</p>
+      </div>`;
   }
-  compiledCollection = Object.entries(payload)
-    .map(([key, value]) => ({ uid: key, ...value }))
-    .sort((a, b) => b.timestamp - a.timestamp);
+}, 3000);
 
-  archiveCount.textContent = `${compiledCollection.length} published`;
-  if (!localFocusedId || !compiledCollection.some(i => i.uid === localFocusedId)) {
-    localFocusedId = compiledCollection[0].uid;
+noticesRef.orderByChild('timestamp').on('value', snapshot => {
+  clearTimeout(dataLoadTimeout);
+  try {
+    const payload = snapshot.val();
+    if (!payload) {
+      liveNoticeWrapper.innerHTML = `<div class="empty-box"><p>📋 No active community messages right now.</p></div>`;
+      controlBar.style.display = 'none';
+      archiveSection.style.display = 'none';
+      compiledCollection = [];
+      return;
+    }
+    compiledCollection = Object.entries(payload)
+      .map(([key, value]) => ({ uid: key, ...value }))
+      .sort((a, b) => b.timestamp - a.timestamp);
+
+    archiveCount.textContent = `${compiledCollection.length} published`;
+    if (!localFocusedId || !compiledCollection.some(i => i.uid === localFocusedId)) {
+      localFocusedId = compiledCollection[0].uid;
+    }
+    renderFocusedNotice();
+    renderArchiveLedger();
+    controlBar.style.display = 'flex';
+    archiveSection.style.display = 'block';
+    handleDeepLink();
+  } catch (error) {
+    console.error('Error processing Firebase data:', error);
+    liveNoticeWrapper.innerHTML = `
+      <div class="empty-box">
+        <p>⚠️ Error loading community messages</p>
+        <p style="font-size:0.8rem;margin-top:0.5rem;color:#94a3b8;">Please refresh the page or try again later.</p>
+      </div>`;
   }
-  renderFocusedNotice();
-  renderArchiveLedger();
-  controlBar.style.display = 'flex';
-  archiveSection.style.display = 'block';
-  handleDeepLink();
+}, error => {
+  clearTimeout(dataLoadTimeout);
+  console.error('Firebase connection error:', error);
+  liveNoticeWrapper.innerHTML = `
+    <div class="empty-box">
+      <p>⚠️ Unable to connect to the community board</p>
+      <p style="font-size:0.8rem;margin-top:0.5rem;color:#94a3b8;">Please check your internet connection and try again.</p>
+      <button class="btn btn-primary" style="margin-top:1rem;" onclick="location.reload()">🔄 Refresh Page</button>
+    </div>`;
 });
 
 // ── RENDER: FOCUSED NOTICE ────────────────────────────────────────────────────
@@ -1057,6 +1087,7 @@ function shareNotice(uid, title) {
 }
 
 
+function escapeHtmlString(s) {
   if (!s) return '';
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
           .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
