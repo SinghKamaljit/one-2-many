@@ -73,7 +73,6 @@ body {
 }
 .notice-body.gurmukhi-text {
   font-size: 1.08rem;
-  text-align: right;   /* Punjabi reads right-aligned is fine but left is standard; keeping left */
   text-align: left;
 }
 
@@ -534,6 +533,7 @@ body {
 </head>
 <body>
 
+
 <!-- PWA INSTALL BANNER -->
 <div class="pwa-banner" id="pwaBanner">
   <div class="pwa-banner-inner">
@@ -704,6 +704,7 @@ let deletionUndoTimeout      = null;
 let cachedPrunedNoticeObject = null;
 let currentAdminUser         = null;
 let deferredPwaPrompt        = null;
+let selectedFontKey          = 'brahmi';
 
 // ── DOM REFS ──────────────────────────────────────────────────────────────────
 const liveNoticeWrapper    = document.getElementById('liveNoticeWrapper');
@@ -734,7 +735,6 @@ const pwaBanner            = document.getElementById('pwaBanner');
 const pwaBannerInstall     = document.getElementById('pwaBannerInstall');
 
 // ── GURMUKHI DETECTION ────────────────────────────────────────────────────────
-// Unicode range U+0A00–U+0A7F is Gurmukhi block
 function hasGurmukhi(text) {
   return /[\u0A00-\u0A7F]/.test(text);
 }
@@ -746,7 +746,6 @@ function applyGurmukhiFont(el, text) {
   }
 }
 
-// Live font switching in textarea while admin types / pastes
 noticeContent.addEventListener('input', () => {
   if (hasGurmukhi(noticeContent.value)) {
     noticeContent.classList.add('gurmukhi-input');
@@ -759,9 +758,8 @@ noticeTitle.addEventListener('input', () => {
 });
 
 // ── PWA INSTALL ───────────────────────────────────────────────────────────────
-// Capture the browser's beforeinstallprompt — prevents the Chrome mini-badge
 window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();            // suppress the automatic badge/banner
+  e.preventDefault();
   deferredPwaPrompt = e;
   if (!localStorage.getItem('pwaBannerDismissed')) {
     pwaBanner.classList.add('show');
@@ -782,9 +780,7 @@ function dismissPwaBanner() {
   localStorage.setItem('pwaBannerDismissed', '1');
 }
 
-// Hide banner if already running as installed PWA
-if (window.matchMedia('(display-mode: standalone)').matches ||
-    window.navigator.standalone === true) {
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
   localStorage.setItem('pwaBannerDismissed', '1');
 }
 
@@ -904,7 +900,6 @@ function renderFocusedNotice() {
     updatedEl = `<span class="notice-updated">Edited: ${editStr}</span>`;
   }
 
-  // Gurmukhi class flags
   const titleGClass = hasGurmukhi(notice.title)   ? ' gurmukhi-text' : '';
   const bodyGClass  = hasGurmukhi(notice.content)  ? ' gurmukhi-text' : '';
 
@@ -1026,7 +1021,6 @@ function initiateNoticeEditing(uid) {
   noticeTitle.value   = obj.title;
   noticeContent.value = obj.content;
   noticeSignee.value  = obj.publisher;
-  // Apply Gurmukhi font to textarea if needed
   if (hasGurmukhi(obj.content)) noticeContent.classList.add('gurmukhi-input');
   else noticeContent.classList.remove('gurmukhi-input');
   panelFormTitle.textContent = "✏️ Modify Existing Message";
@@ -1131,11 +1125,6 @@ function escapeHtmlString(s) {
 }
 
 // ── LEGACY GURMUKHI FONT CONVERTER ───────────────────────────────────────────
-// Converts ASCII-encoded legacy Punjabi font text → proper Unicode Gurmukhi.
-// Supports: Brahmi/Brahmi Punjabi, APS-DV-Priya, Satluj, GurbaniAkhar, Anmol Lipi
-
-let selectedFontKey = 'brahmi';
-
 function toggleConverter() {
   const btn  = document.getElementById('converterToggle');
   const body = document.getElementById('converterBody');
@@ -1147,7 +1136,6 @@ function selectFont(el, key) {
   document.querySelectorAll('#fontPills .pill').forEach(p => p.classList.remove('selected'));
   el.classList.add('selected');
   selectedFontKey = key;
-  // clear previous result when font changes
   document.getElementById('converterResult').classList.remove('show');
   document.getElementById('btnUseConverted').classList.remove('show');
   document.getElementById('converterHint').style.display = 'none';
@@ -1156,7 +1144,6 @@ function selectFont(el, key) {
 function useConvertedText() {
   const result = document.getElementById('converterResult').textContent;
   if (!result) return;
-  // Append to existing content or set fresh
   const cur = noticeContent.value.trim();
   noticeContent.value = cur ? cur + '\n' + result : result;
   noticeContent.classList.add('gurmukhi-input');
@@ -1164,6 +1151,7 @@ function useConvertedText() {
   displayToastAlert('✅ Converted text added to Message Content.');
 }
 
+// Renamed from convertText() and aligned with 'converterInput' field element IDs
 function runConversion() {
   const raw = document.getElementById('converterInput').value;
   if (!raw.trim()) { displayToastAlert('⚠️ Paste some text first.'); return; }
@@ -1189,60 +1177,60 @@ function runConversion() {
 }
 
 // ── BRAHMI / BRAHMI PUNJABI ───────────────────────────────────────────────────
-// Most widely used legacy Punjabi font in North India
 function convertBrahmi(text) {
-  // Character-level map: ASCII/Latin → Unicode Gurmukhi
   const map = {
-    // Vowel signs & special
     'a': 'ਾ',  'A': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
     'y': 'ੇ',  'Y': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
     'M': 'ਂ',  'N': 'ਂ',  'W': 'ਾਂ', 'ü': 'ੁ',  'Ü': 'ੂ',
     '^': 'ੱ',  '`': 'ੰ',  '~': 'ੱ',  '&': 'ੰ',
-    // Halant / virama
     '§': '੍',  '%': '੍',
-    // Ik Onkar & Gurmukhi numerals
     '<': 'ੴ',  '>': '॥',  ']': '॥',  '[': '।',  '|': '।',
     '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
     '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
-    // Consonants
     'q': 'ਤ',  'w': 'ਵ',  'e': 'ੲ',  'r': 'ਰ',  't': 'ਟ',
     'p': 'ਪ',  's': 'ਸ',  'd': 'ਦ',  'f': 'ਡ',  'g': 'ਗ',
     'h': 'ਹ',  'j': 'ਜ',  'k': 'ਕ',  'l': 'ਲ',  'z': 'ਜ਼',
     'x': 'ਣ',  'c': 'ਚ',  'v': 'ਭ',  'b': 'ਬ',  'n': 'ਨ',
-    'm': 'ਮ',  'Q': 'ਠ',  'W': 'ਾਂ', 'E': 'ਉ',  'R': 'ੜ',
+    'm': 'ਮ',  'Q': 'ਠ',  'E': 'ਉ',  'R': 'ੜ',
     'T': 'ਥ',  'P': 'ਫ',  'S': 'ਸ਼', 'D': 'ਧ',  'F': 'ਢ',
     'G': 'ਘ',  'H': 'ਹ਼', 'J': 'ਝ',  'K': 'ਖ',  'L': 'ਲ਼',
     'Z': 'ਜ਼', 'X': 'ਆ',  'C': 'ਛ',  'V': 'ਭ',  'B': 'ਙ',
-    'N': 'ਂ',
-    // Subjoined consonants (pairin)
     '®': '੍ਰ', 'µ': '੍ਵ', '´': '੍ਹ', '£': '੍ਯ',
-    // Muchhant / open letters
     'ç': 'ਸ',  'å': 'ਅ',  'é': 'ੲ',  'ï': 'ੲ',  'ë': 'ੲ',
-    // Misc
     '@': 'ੳ',  '#': 'ਙ',  '$': 'ਞ',  '*': 'ਖ਼', '(': 'ਗ਼',
     ')': 'ਜ਼', '-': '-',   ' ': ' ',  '\n': '\n', '\r': '\r',
   };
 
-  // Multi-char sequences first (order matters)
   let out = text;
-  // Common two-char sequences in Brahmi
   const multi = [
     ['sR', 'ਸ੍ਰ'], ['pR', 'ਪ੍ਰ'], ['bR', 'ਬ੍ਰ'], ['kR', 'ਕ੍ਰ'],
     ['gR', 'ਗ੍ਰ'], ['DR', 'ਧ੍ਰ'], ['nR', 'ਨ੍ਰ'], ['qR', 'ਤ੍ਰ'],
     ['mR', 'ਮ੍ਰ'], ['vR', 'ਵ੍ਰ'], ['dR', 'ਦ੍ਰ'], ['hR', 'ਹ੍ਰ'],
-    ['PR', 'ਫ੍ਰ'], ['SR', 'ਸ਼੍ਰ'],
-    ['ky', 'ਕੇ'], ['hy', 'ਹੇ'], // common combos
+    ['PR', 'ਫ੍ਰ'], ['SR', 'ਸ਼੍ਰ'], ['ky', 'ਕੇ'], ['hy', 'ਹੇ'],
   ];
   multi.forEach(([from, to]) => {
     out = out.split(from).join(to);
   });
 
-  // Single char map
   return out.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
 }
 
 // ── APS / APS-DV-PRIYA ────────────────────────────────────────────────────────
 function convertAPS(text) {
+  const consonants = [
+    'k','K','g','G','c','C','j','J','q','Q',
+    'd','D','p','P','b','B','r','R','l','v',
+    's','S','h','f','F','t','T','x','X','z',
+    'Z','w','m','n'
+  ];
+  const ligatures = [
+    ['pR', 'ਪ੍ਰ'], ['sR', 'ਸ੍ਰ'], ['bR', 'ਬ੍ਰ'], ['kR', 'ਕ੍ਰ'],
+    ['gR', 'ਗ੍ਰ'], ['qR', 'ਤ੍ਰ'], ['dR', 'ਦ੍ਰ'], ['nR', 'ਨ੍ਰ'],
+    ['mR', 'ਮ੍ਰ'], ['hR', 'ਹ੍ਰ'], ['DR', 'ਧ੍ਰ'], ['SR', 'ਸ਼੍ਰ'],
+  ];
+  let out = expandLegacyLigatures(text, ligatures);
+  out = reorderSihari(out, consonants);
+
   const map = {
     'a': 'ਾ',  'A': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
     'e': 'ੇ',  'E': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
@@ -1257,13 +1245,26 @@ function convertAPS(text) {
     '<': 'ੴ',  ']': '॥',  '[': '।',
     '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
     '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
-    ' ': ' ',  '\n': '\n',
+    ' ': ' ',  '\n': '\n', '\r': '\r',
   };
-  return text.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
+  return out.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
 }
 
 // ── SATLUJ ────────────────────────────────────────────────────────────────────
 function convertSatluj(text) {
+  const consonants = [
+    'q','w','e','r','t','p','s','d','f','g',
+    'h','j','k','l','z','x','c','v','b','n',
+    'm','Q','E','R','T','P','S','D','F','G','J','K','C','B'
+  ];
+  const ligatures = [
+    ['pR', 'ਪ੍ਰ'], ['sR', 'ਸ੍ਰ'], ['bR', 'ਬ੍ਰ'], ['kR', 'ਕ੍ਰ'],
+    ['gR', 'ਗ੍ਰ'], ['qR', 'ਤ੍ਰ'], ['dR', 'ਦ੍ਰ'], ['nR', 'ਨ੍ਰ'],
+    ['mR', 'ਮ੍ਰ'], ['hR', 'ਹ੍ਰ'], ['DR', 'ਧ੍ਰ'], ['SR', 'ਸ਼੍ਰ'],
+  ];
+  let out = expandLegacyLigatures(text, ligatures);
+  out = reorderSihari(out, consonants);
+
   const map = {
     'a': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
     'y': 'ੇ',  'Y': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
@@ -1278,19 +1279,14 @@ function convertSatluj(text) {
     '<': 'ੴ',  ']': '॥',  '[': '।',
     '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
     '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
-    ' ': ' ',  '\n': '\n',
+    ' ': ' ',  '\n': '\n', '\r': '\r',
   };
-  return text.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
+  return out.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
 }
 
 // ── SHARED PREPROCESSING HELPERS ─────────────────────────────────────────────
-
-// Step 1 — Expand ligature pairs BEFORE any char-level mapping.
-// These are two-ASCII-char sequences that represent a single conjunct in
-// legacy visual fonts (e.g. "pR" visually looks like ਪ੍ਰ).
 function expandLegacyLigatures(text, pairs) {
   let out = text;
-  // Sort longest first so overlapping pairs don't partially match
   pairs.sort((a, b) => b[0].length - a[0].length);
   pairs.forEach(([from, to]) => {
     out = out.split(from).join(to);
@@ -1298,42 +1294,25 @@ function expandLegacyLigatures(text, pairs) {
   return out;
 }
 
-// Step 2 — Sihari (ਿ) reordering.
-// In legacy visual fonts the sihari keystroke ('i') is typed BEFORE the
-// consonant it modifies so it renders to the left visually. In Unicode the
-// sihari codepoint (ਿ U+0A3F) must sit AFTER its consonant in the string.
-//
-// Algorithm: scan the raw ASCII input character by character.
-// When we see 'i' (sihari marker), skip it, output the very next
-// consonant/cluster character first, then append the 'i' marker.
-// Non-sihari characters are emitted as-is.
-//
-// consonantChars: the set of raw ASCII characters that represent consonants
-// in the font being processed (used to decide "what is the next consonant").
 function reorderSihari(text, consonantChars) {
   const consonantSet = new Set(consonantChars);
-  const chars = Array.from(text);   // handles multi-byte chars correctly
+  const chars = Array.from(text);
   const result = [];
   let i = 0;
   while (i < chars.length) {
     if (chars[i] === 'i') {
-      // Look ahead for the next consonant (skip other vowels / spaces)
       let j = i + 1;
-      // Collect any pre-consonant modifier chars (e.g. addak '^', bindi '`')
-      // that precede the base consonant — they stay before the consonant
       const preMods = [];
       while (j < chars.length && !consonantSet.has(chars[j]) && chars[j] !== '\n' && chars[j] !== ' ') {
         preMods.push(chars[j]);
         j++;
       }
       if (j < chars.length && consonantSet.has(chars[j])) {
-        // Emit: pre-modifiers (if any) + consonant + sihari marker
         preMods.forEach(m => result.push(m));
-        result.push(chars[j]);   // consonant comes first
-        result.push('i');        // sihari after
+        result.push(chars[j]);
+        result.push('i');
         i = j + 1;
       } else {
-        // No consonant found ahead — emit 'i' as-is
         result.push('i');
         i++;
       }
@@ -1347,15 +1326,12 @@ function reorderSihari(text, consonantChars) {
 
 // ── GURBANIAKHAR / GURBANI SLIM ───────────────────────────────────────────────
 function convertGurbaniAkhar(text) {
-
-  // Consonant ASCII chars for this font layout
   const consonants = [
     'q','w','e','r','t','p','s','d','f','g',
     'h','j','k','l','x','c','v','b','n','m',
     'Q','R','T','P','S','D','F','G','J','K','C','E','Z','L'
   ];
 
-  // Step 1: expand ligature clusters
   const ligatures = [
     ['pR', 'ਪ੍ਰ'], ['sR', 'ਸ੍ਰ'], ['bR', 'ਬ੍ਰ'], ['kR', 'ਕ੍ਰ'],
     ['gR', 'ਗ੍ਰ'], ['qR', 'ਤ੍ਰ'], ['dR', 'ਦ੍ਰ'], ['nR', 'ਨ੍ਰ'],
@@ -1363,22 +1339,14 @@ function convertGurbaniAkhar(text) {
     ['PR', 'ਫ੍ਰ'], ['vR', 'ਵ੍ਰ'], ['jR', 'ਜ੍ਰ'], ['lR', 'ਲ੍ਰ'],
   ];
   let out = expandLegacyLigatures(text, ligatures);
-
-  // Step 2: fix sihari ordering in raw ASCII before char mapping
   out = reorderSihari(out, consonants);
 
-  // Step 3: character-level map
   const map = {
-    // Vowel signs
     'a': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
     'y': 'ੇ',  'Y': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
-    // Nasalisation & gemination
     'M': 'ਂ',  'N': 'ੰ',  '^': 'ੱ',  '`': 'ੰ',  '~': 'ੱ',
-    // Halant (virama) for subjoined consonants
     '%': '੍',
-    // Special symbols
     ']': 'ੴ',  '<': 'ੴ',  '>': '॥',  '[': '।',  '©': 'ੴ',  '®': '੍ਰ',
-    // Consonants
     'q': 'ਤ',  'w': 'ਵ',  'e': 'ੲ',  'r': 'ਰ',  't': 'ਟ',
     'p': 'ਪ',  's': 'ਸ',  'd': 'ਦ',  'f': 'ਡ',  'g': 'ਗ',
     'h': 'ਹ',  'j': 'ਜ',  'k': 'ਕ',  'l': 'ਲ',
@@ -1386,10 +1354,8 @@ function convertGurbaniAkhar(text) {
     'm': 'ਮ',  'Q': 'ਠ',  'R': 'ੜ',  'T': 'ਥ',  'E': 'ਉ',
     'P': 'ਫ',  'S': 'ਸ਼', 'D': 'ਧ',  'F': 'ਢ',  'G': 'ਘ',
     'J': 'ਝ',  'K': 'ਖ',  'C': 'ਛ',  'Z': 'ਜ਼', 'L': 'ਲ਼',
-    // Numerals
     '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
     '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
-    // Whitespace
     ' ': ' ',  '\n': '\n', '\r': '\r',
   };
 
@@ -1398,8 +1364,6 @@ function convertGurbaniAkhar(text) {
 
 // ── ANMOL LIPI ────────────────────────────────────────────────────────────────
 function convertAnmolLipi(text) {
-
-  // Consonant ASCII chars for Anmol Lipi layout
   const consonants = [
     'q','w','e','r','t','p','s','d','f','g',
     'h','j','k','l','z','x','c','v','b','n',
@@ -1407,7 +1371,6 @@ function convertAnmolLipi(text) {
     'J','K','C','B','Z','L','H'
   ];
 
-  // Step 1: expand ligature clusters
   const ligatures = [
     ['pR', 'ਪ੍ਰ'], ['sR', 'ਸ੍ਰ'], ['bR', 'ਬ੍ਰ'], ['kR', 'ਕ੍ਰ'],
     ['gR', 'ਗ੍ਰ'], ['qR', 'ਤ੍ਰ'], ['dR', 'ਦ੍ਰ'], ['nR', 'ਨ੍ਰ'],
@@ -1416,22 +1379,14 @@ function convertAnmolLipi(text) {
     ['zR', 'ਜ਼੍ਰ'], ['ZR', 'ਖ਼੍ਰ'],
   ];
   let out = expandLegacyLigatures(text, ligatures);
-
-  // Step 2: fix sihari ordering in raw ASCII before char mapping
   out = reorderSihari(out, consonants);
 
-  // Step 3: character-level map
   const map = {
-    // Vowel signs
     'a': 'ਾ',  'A': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
     'y': 'ੇ',  'Y': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
-    // Nasalisation & gemination
     'M': 'ਂ',  'N': 'ੰ',  '^': 'ੱ',  '`': 'ੰ',  '~': 'ੱ',
-    // Halant
     '%': '੍',
-    // Special symbols — ']' = ੴ (Ik Onkar) as specified
     ']': 'ੴ',  '<': 'ੴ',  '>': '॥',  '[': '।',  '|': '।',
-    // Consonants
     'q': 'ਤ',  'w': 'ਵ',  'e': 'ੲ',  'r': 'ਰ',  't': 'ਟ',
     'p': 'ਪ',  's': 'ਸ',  'd': 'ਦ',  'f': 'ਡ',  'g': 'ਗ',
     'h': 'ਹ',  'j': 'ਜ',  'k': 'ਕ',  'l': 'ਲ',  'z': 'ਜ਼',
@@ -1440,10 +1395,8 @@ function convertAnmolLipi(text) {
     'P': 'ਫ',  'S': 'ਸ਼', 'D': 'ਧ',  'F': 'ਢ',  'G': 'ਘ',
     'J': 'ਝ',  'K': 'ਖ',  'C': 'ਛ',  'B': 'ਭ',  'Z': 'ਖ਼',
     'L': 'ਲ਼', 'H': 'ਹ਼',
-    // Numerals
     '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
     '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
-    // Whitespace
     ' ': ' ',  '\n': '\n', '\r': '\r',
   };
 
