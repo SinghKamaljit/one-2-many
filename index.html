@@ -404,123 +404,23 @@ body {
   font-size: 0.75rem; font-weight: 700; cursor: pointer;
 }
 
-/* ── LEGACY FONT CONVERTER ───────────────────────────────── */
-.converter-section {
-  margin-top: 1.25rem;
+/* ── NOTICE LINK ─────────────────────────────────────────── */
+.notice-link-row {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
   border-top: 1px dashed var(--border-light);
-  padding-top: 1rem;
 }
-.converter-toggle {
-  display: flex;
+.notice-link-row a {
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  padding: 0;
-  width: 100%;
-  text-align: left;
-}
-.converter-toggle .arrow {
-  font-size: 0.65rem;
-  transition: transform 0.2s;
-  color: var(--gold-primary);
-}
-.converter-toggle.open .arrow { transform: rotate(90deg); }
-.converter-body {
-  display: none;
-  margin-top: 0.85rem;
-}
-.converter-body.open { display: block; }
-.converter-font-pills {
-  display: flex;
-  flex-wrap: wrap;
   gap: 0.4rem;
-  margin-bottom: 0.75rem;
-}
-.pill {
-  padding: 0.25rem 0.65rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border: 1px solid var(--border-light);
-  background: white;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.pill.selected {
-  background: var(--navy-dark);
-  color: var(--gold-light);
-  border-color: var(--navy-dark);
-}
-.converter-textarea {
-  width: 100%;
-  padding: 0.6rem 0.75rem;
+  color: var(--gold-primary);
   font-size: 0.88rem;
-  font-family: monospace;
-  border: 1px solid var(--border-light);
-  border-radius: 8px;
-  outline: none;
-  resize: vertical;
-  min-height: 80px;
-  background: #f8fafc;
-  color: var(--text-primary);
+  font-weight: 600;
+  text-decoration: none;
+  word-break: break-all;
 }
-.converter-textarea:focus { border-color: var(--gold-primary); }
-.converter-result {
-  width: 100%;
-  padding: 0.6rem 0.75rem;
-  font-size: 1rem;
-  font-family: var(--font-gurmukhi);
-  line-height: 1.8;
-  border: 1px solid var(--border-light);
-  border-radius: 8px;
-  background: var(--gold-light);
-  color: var(--navy-dark);
-  min-height: 60px;
-  word-break: break-word;
-  white-space: pre-wrap;
-  display: none;
-}
-.converter-result.show { display: block; }
-.converter-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.6rem;
-  flex-wrap: wrap;
-}
-.btn-convert {
-  background: var(--navy-dark);
-  color: white;
-  border: none;
-  padding: 0.45rem 0.9rem;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-.btn-use-converted {
-  background: var(--gold-primary);
-  color: white;
-  border: none;
-  padding: 0.45rem 0.9rem;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: none;
-}
-.btn-use-converted.show { display: inline-block; }
-.converter-hint {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  margin-top: 0.4rem;
-  font-style: italic;
-}
+.notice-link-row a:hover { text-decoration: underline; }
 
 /* ── FOOTER ──────────────────────────────────────────────── */
 .app-footer {
@@ -579,7 +479,11 @@ body {
     </div>
     <div class="modal-form-group">
       <label for="signInPassword">Password</label>
-      <input type="password" id="signInPassword" placeholder="Your password" autocomplete="current-password">
+      <div style="position:relative;">
+        <input type="password" id="signInPassword" placeholder="Your password" autocomplete="current-password" style="padding-right:2.5rem;">
+        <button type="button" id="togglePwdBtn" onclick="togglePasswordVisibility()"
+          style="position:absolute;right:0.6rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--text-muted);padding:0;line-height:1;">👁</button>
+      </div>
     </div>
     <div class="modal-error" id="signInError"></div>
     <div class="modal-actions">
@@ -601,39 +505,16 @@ body {
       <input type="text" id="noticeTitle" placeholder="e.g., Sukhmani Sahib Path — Sunday">
     </div>
     <div class="form-group">
-      <label for="noticeContent">Message Content — ਸੁਨੇਹਾ (Supports Gurmukhi ਗੁਰਮੁਖੀ + English)</label>
+      <label for="noticeContent">Message Content — ਸੁਨੇਹਾ (Supports ਗੁਰਮੁਖੀ · हिंदी · English)</label>
       <textarea id="noticeContent" rows="10" placeholder="Type or paste your message here — Gurmukhi or English..."></textarea>
     </div>
     <div class="form-group">
       <label for="noticeSignee">Shared By — ਵੱਲੋਂ</label>
       <input type="text" id="noticeSignee" value="Community Team">
     </div>
-    <!-- LEGACY FONT CONVERTER -->
-    <div class="converter-section">
-      <button class="converter-toggle" id="converterToggle" onclick="toggleConverter()">
-        <span class="arrow">▶</span>
-        ਗੁਰਮੁਖੀ Converter — Paste legacy PDF text here
-      </button>
-      <div class="converter-body" id="converterBody">
-        <p class="converter-hint">Select the font the PDF was made with, paste the garbled text, then tap Convert.</p>
-        <div class="converter-font-pills" id="fontPills">
-          <button class="pill selected" onclick="selectFont(this,'brahmi')">Brahmi / Brahmi Punjabi</button>
-          <button class="pill" onclick="selectFont(this,'aps')">APS / APS-DV-Priya</button>
-          <button class="pill" onclick="selectFont(this,'satluj')">Satluj</button>
-          <button class="pill" onclick="selectFont(this,'gurbaniakhar')">GurbaniAkhar / Gurbani Slim</button>
-          <button class="pill" onclick="selectFont(this,'anmollipi')">Anmol Lipi</button>
-        </div>
-        <textarea class="converter-textarea" id="converterInput"
-          rows="5" placeholder="Paste the copied PDF text here e.g.  siqgur pRswid ]"></textarea>
-        <div class="converter-actions">
-          <button class="btn-convert" onclick="runConversion()">🔄 Convert to ਗੁਰਮੁਖੀ</button>
-          <button class="btn-use-converted" id="btnUseConverted" onclick="useConvertedText()">✅ Use this text →</button>
-        </div>
-        <div class="converter-result gurmukhi-text" id="converterResult"></div>
-        <p class="converter-hint" id="converterHint" style="display:none;">
-          Tap "Use this text →" to copy the converted text into the Message Content field above.
-        </p>
-      </div>
+    <div class="form-group">
+      <label for="noticeLink">Link (Optional) — ਲਿੰਕ</label>
+      <input type="url" id="noticeLink" placeholder="https://youtube.com/... or any website link">
     </div>
 
     <div class="admin-actions">
@@ -704,7 +585,6 @@ let deletionUndoTimeout      = null;
 let cachedPrunedNoticeObject = null;
 let currentAdminUser         = null;
 let deferredPwaPrompt        = null;
-let selectedFontKey          = 'brahmi';
 
 // ── DOM REFS ──────────────────────────────────────────────────────────────────
 const liveNoticeWrapper    = document.getElementById('liveNoticeWrapper');
@@ -720,6 +600,7 @@ const submitFormBtn        = document.getElementById('submitFormBtn');
 const noticeTitle          = document.getElementById('noticeTitle');
 const noticeContent        = document.getElementById('noticeContent');
 const noticeSignee         = document.getElementById('noticeSignee');
+const noticeLink           = document.getElementById('noticeLink');
 const toastNotification    = document.getElementById('toastNotification');
 const toastMessage         = document.getElementById('toastMessage');
 const toastUndoBtn         = document.getElementById('toastUndoBtn');
@@ -849,7 +730,37 @@ function executeSignIn() {
 function executeSignOut() {
   auth.signOut().then(() => displayToastAlert('👋 Signed out successfully.'));
 }
-function friendlyAuthError(code) {
+function togglePasswordVisibility() {
+  const input = document.getElementById('signInPassword');
+  const btn   = document.getElementById('togglePwdBtn');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
+// ── DEEP LINK LANDING ─────────────────────────────────────────────────────────
+function handleDeepLink() {
+  const params = new URLSearchParams(window.location.search);
+  const targetId = params.get('n');
+  if (!targetId) return;
+  // Wait for data to load then focus the linked notice
+  const attempt = setInterval(() => {
+    const match = compiledCollection.find(i => i.uid === targetId);
+    if (match) {
+      clearInterval(attempt);
+      localFocusedId = targetId;
+      renderFocusedNotice();
+      renderArchiveLedger();
+      setTimeout(() => liveNoticeWrapper.scrollIntoView({ behavior: 'smooth' }), 300);
+    }
+  }, 200);
+  setTimeout(() => clearInterval(attempt), 8000); // give up after 8s
+}
+
   const map = {
     'auth/invalid-email':      'Invalid email address.',
     'auth/user-not-found':     'No admin account found for this email.',
@@ -882,6 +793,7 @@ noticesRef.orderByChild('timestamp').on('value', snapshot => {
   renderArchiveLedger();
   controlBar.style.display = 'flex';
   archiveSection.style.display = 'block';
+  handleDeepLink();
 });
 
 // ── RENDER: FOCUSED NOTICE ────────────────────────────────────────────────────
@@ -903,6 +815,13 @@ function renderFocusedNotice() {
   const titleGClass = hasGurmukhi(notice.title)   ? ' gurmukhi-text' : '';
   const bodyGClass  = hasGurmukhi(notice.content)  ? ' gurmukhi-text' : '';
 
+  const linkRow = notice.link ? `
+    <div class="notice-link-row">
+      <a href="${escapeHtmlString(notice.link)}" target="_blank" rel="noopener noreferrer">🔗 ${escapeHtmlString(notice.link)}</a>
+    </div>` : '';
+
+  const shareUrl = `https://singhkamaljit.github.io/one-2-many/?n=${notice.uid}`;
+
   const adminActions = isAdmin() ? `
     <div class="notice-actions">
       <button class="btn btn-edit"   onclick="initiateNoticeEditing('${notice.uid}')">✏️ Edit</button>
@@ -920,6 +839,7 @@ function renderFocusedNotice() {
       </div>
       <h2 class="notice-title${titleGClass}">${escapeHtmlString(notice.title)}</h2>
       <div class="notice-body${bodyGClass}">${escapeHtmlString(notice.content)}</div>
+      ${linkRow}
       <div class="notice-signoff">
         <div class="publisher-info">
           <div class="publisher-icon">📢</div>
@@ -928,6 +848,7 @@ function renderFocusedNotice() {
             <div class="publisher-dept">${escapeHtmlString(notice.publisher)}</div>
           </div>
         </div>
+        <button class="btn btn-outline" style="font-size:0.8rem;padding:0.35rem 0.75rem;" onclick="shareNotice('${notice.uid}','${escapeHtmlString(notice.title).replace(/'/g,"\\'")}')">🔗 Share</button>
       </div>
     </div>
     ${adminActions}
@@ -983,6 +904,7 @@ function executePublish() {
   const titleText  = noticeTitle.value.trim();
   const rawBody    = noticeContent.value.trim();
   const authority  = noticeSignee.value.trim();
+  const linkVal    = noticeLink.value.trim();
   const targetUid  = editNoticeUid.value;
   if (!titleText || !rawBody || !authority) {
     displayToastAlert("⚠️ Complete all required fields before submitting."); return;
@@ -991,6 +913,7 @@ function executePublish() {
     displayToastAlert("Updating community record...");
     noticesRef.child(targetUid).update({
       title: titleText, content: rawBody, publisher: authority,
+      link: linkVal || '',
       lastUpdated: firebase.database.ServerValue.TIMESTAMP
     })
     .then(() => { displayToastAlert("✏️ Message updated successfully."); clearFormStates(); })
@@ -1000,6 +923,7 @@ function executePublish() {
     const serial = `KIND-ATTN-${now.getFullYear()}-${now.getTime().toString().slice(-4)}`;
     noticesRef.push({
       serialId: serial, title: titleText, content: rawBody, publisher: authority,
+      link: linkVal || '',
       timestamp: firebase.database.ServerValue.TIMESTAMP,
       category: "Community Messages", verifiedQr: "", readCount: 0,
       languagesSupported: ["en", "pa"]
@@ -1021,6 +945,7 @@ function initiateNoticeEditing(uid) {
   noticeTitle.value   = obj.title;
   noticeContent.value = obj.content;
   noticeSignee.value  = obj.publisher;
+  noticeLink.value    = obj.link || '';
   if (hasGurmukhi(obj.content)) noticeContent.classList.add('gurmukhi-input');
   else noticeContent.classList.remove('gurmukhi-input');
   panelFormTitle.textContent = "✏️ Modify Existing Message";
@@ -1096,6 +1021,7 @@ function clearFormStates() {
   editNoticeUid.value = '';
   noticeTitle.value   = '';
   noticeContent.value = '';
+  noticeLink.value    = '';
   noticeContent.classList.remove('gurmukhi-input');
   noticeTitle.classList.remove('gurmukhi-text');
   panelFormTitle.textContent = "🛠️ Community Steward Panel";
@@ -1118,290 +1044,28 @@ function displayToastAlert(msg, withUndo = false) {
 }
 function hideToastAlertElement() { toastNotification.classList.remove('show'); }
 
-function escapeHtmlString(s) {
+function shareNotice(uid, title) {
+  const url = `https://singhkamaljit.github.io/one-2-many/?n=${uid}`;
+  if (navigator.share) {
+    navigator.share({ title: title, url: url })
+      .catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url)
+      .then(() => displayToastAlert('🔗 Link copied to clipboard!'))
+      .catch(() => displayToastAlert('🔗 Share link: ' + url));
+  }
+}
+
+
   if (!s) return '';
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
           .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 
-// ── LEGACY GURMUKHI FONT CONVERTER ───────────────────────────────────────────
-function toggleConverter() {
-  const btn  = document.getElementById('converterToggle');
-  const body = document.getElementById('converterBody');
-  btn.classList.toggle('open');
-  body.classList.toggle('open');
-}
 
-function selectFont(el, key) {
-  document.querySelectorAll('#fontPills .pill').forEach(p => p.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedFontKey = key;
-  document.getElementById('converterResult').classList.remove('show');
-  document.getElementById('btnUseConverted').classList.remove('show');
-  document.getElementById('converterHint').style.display = 'none';
-}
 
-function useConvertedText() {
-  const result = document.getElementById('converterResult').textContent;
-  if (!result) return;
-  const cur = noticeContent.value.trim();
-  noticeContent.value = cur ? cur + '\n' + result : result;
-  noticeContent.classList.add('gurmukhi-input');
-  noticeContent.dispatchEvent(new Event('input'));
-  displayToastAlert('✅ Converted text added to Message Content.');
-}
 
-// Renamed from convertText() and aligned with 'converterInput' field element IDs
-function runConversion() {
-  const raw = document.getElementById('converterInput').value;
-  if (!raw.trim()) { displayToastAlert('⚠️ Paste some text first.'); return; }
 
-  let converted = '';
-  switch (selectedFontKey) {
-    case 'brahmi':        converted = convertBrahmi(raw);       break;
-    case 'aps':           converted = convertAPS(raw);          break;
-    case 'satluj':        converted = convertSatluj(raw);       break;
-    case 'gurbaniakhar':  converted = convertGurbaniAkhar(raw); break;
-    case 'anmollipi':     converted = convertAnmolLipi(raw);    break;
-    default:              converted = raw;
-  }
-
-  const resultEl = document.getElementById('converterResult');
-  const useBtn   = document.getElementById('btnUseConverted');
-  const hint     = document.getElementById('converterHint');
-
-  resultEl.textContent = converted;
-  resultEl.classList.add('show');
-  useBtn.classList.add('show');
-  hint.style.display = 'block';
-}
-
-// ── BRAHMI / BRAHMI PUNJABI ───────────────────────────────────────────────────
-function convertBrahmi(text) {
-  const map = {
-    'a': 'ਾ',  'A': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
-    'y': 'ੇ',  'Y': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
-    'M': 'ਂ',  'N': 'ਂ',  'W': 'ਾਂ', 'ü': 'ੁ',  'Ü': 'ੂ',
-    '^': 'ੱ',  '`': 'ੰ',  '~': 'ੱ',  '&': 'ੰ',
-    '§': '੍',  '%': '੍',
-    '<': 'ੴ',  '>': '॥',  ']': '॥',  '[': '।',  '|': '।',
-    '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
-    '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
-    'q': 'ਤ',  'w': 'ਵ',  'e': 'ੲ',  'r': 'ਰ',  't': 'ਟ',
-    'p': 'ਪ',  's': 'ਸ',  'd': 'ਦ',  'f': 'ਡ',  'g': 'ਗ',
-    'h': 'ਹ',  'j': 'ਜ',  'k': 'ਕ',  'l': 'ਲ',  'z': 'ਜ਼',
-    'x': 'ਣ',  'c': 'ਚ',  'v': 'ਭ',  'b': 'ਬ',  'n': 'ਨ',
-    'm': 'ਮ',  'Q': 'ਠ',  'E': 'ਉ',  'R': 'ੜ',
-    'T': 'ਥ',  'P': 'ਫ',  'S': 'ਸ਼', 'D': 'ਧ',  'F': 'ਢ',
-    'G': 'ਘ',  'H': 'ਹ਼', 'J': 'ਝ',  'K': 'ਖ',  'L': 'ਲ਼',
-    'Z': 'ਜ਼', 'X': 'ਆ',  'C': 'ਛ',  'V': 'ਭ',  'B': 'ਙ',
-    '®': '੍ਰ', 'µ': '੍ਵ', '´': '੍ਹ', '£': '੍ਯ',
-    'ç': 'ਸ',  'å': 'ਅ',  'é': 'ੲ',  'ï': 'ੲ',  'ë': 'ੲ',
-    '@': 'ੳ',  '#': 'ਙ',  '$': 'ਞ',  '*': 'ਖ਼', '(': 'ਗ਼',
-    ')': 'ਜ਼', '-': '-',   ' ': ' ',  '\n': '\n', '\r': '\r',
-  };
-
-  let out = text;
-  const multi = [
-    ['sR', 'ਸ੍ਰ'], ['pR', 'ਪ੍ਰ'], ['bR', 'ਬ੍ਰ'], ['kR', 'ਕ੍ਰ'],
-    ['gR', 'ਗ੍ਰ'], ['DR', 'ਧ੍ਰ'], ['nR', 'ਨ੍ਰ'], ['qR', 'ਤ੍ਰ'],
-    ['mR', 'ਮ੍ਰ'], ['vR', 'ਵ੍ਰ'], ['dR', 'ਦ੍ਰ'], ['hR', 'ਹ੍ਰ'],
-    ['PR', 'ਫ੍ਰ'], ['SR', 'ਸ਼੍ਰ'], ['ky', 'ਕੇ'], ['hy', 'ਹੇ'],
-  ];
-  multi.forEach(([from, to]) => {
-    out = out.split(from).join(to);
-  });
-
-  return out.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
-}
-
-// ── APS / APS-DV-PRIYA ────────────────────────────────────────────────────────
-function convertAPS(text) {
-  const consonants = [
-    'k','K','g','G','c','C','j','J','q','Q',
-    'd','D','p','P','b','B','r','R','l','v',
-    's','S','h','f','F','t','T','x','X','z',
-    'Z','w','m','n'
-  ];
-  const ligatures = [
-    ['pR', 'ਪ੍ਰ'], ['sR', 'ਸ੍ਰ'], ['bR', 'ਬ੍ਰ'], ['kR', 'ਕ੍ਰ'],
-    ['gR', 'ਗ੍ਰ'], ['qR', 'ਤ੍ਰ'], ['dR', 'ਦ੍ਰ'], ['nR', 'ਨ੍ਰ'],
-    ['mR', 'ਮ੍ਰ'], ['hR', 'ਹ੍ਰ'], ['DR', 'ਧ੍ਰ'], ['SR', 'ਸ਼੍ਰ'],
-  ];
-  let out = expandLegacyLigatures(text, ligatures);
-  out = reorderSihari(out, consonants);
-
-  const map = {
-    'a': 'ਾ',  'A': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
-    'e': 'ੇ',  'E': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
-    'M': 'ਂ',  'N': 'ਂ',  'm': 'ਮ',  'n': 'ਨ',
-    'k': 'ਕ',  'K': 'ਖ',  'g': 'ਗ',  'G': 'ਘ',  'c': 'ਚ',  'C': 'ਛ',
-    'j': 'ਜ',  'J': 'ਝ',  'q': 'ਤ',  'Q': 'ਠ',  'd': 'ਦ',  'D': 'ਧ',
-    'p': 'ਪ',  'P': 'ਫ',  'b': 'ਬ',  'B': 'ਭ',  'r': 'ਰ',  'R': 'ੜ',
-    'l': 'ਲ',  'v': 'ਵ',  's': 'ਸ',  'S': 'ਸ਼', 'h': 'ਹ',
-    'f': 'ਡ',  'F': 'ਢ',  't': 'ਟ',  'T': 'ਥ',  'x': 'ਣ',  'X': 'ਆ',
-    'z': 'ਜ਼', 'Z': 'ਖ਼', 'w': 'ਵ',
-    '^': 'ੱ',  '`': 'ੰ',  '~': 'ੱ',
-    '<': 'ੴ',  ']': '॥',  '[': '।',
-    '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
-    '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
-    ' ': ' ',  '\n': '\n', '\r': '\r',
-  };
-  return out.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
-}
-
-// ── SATLUJ ────────────────────────────────────────────────────────────────────
-function convertSatluj(text) {
-  const consonants = [
-    'q','w','e','r','t','p','s','d','f','g',
-    'h','j','k','l','z','x','c','v','b','n',
-    'm','Q','E','R','T','P','S','D','F','G','J','K','C','B'
-  ];
-  const ligatures = [
-    ['pR', 'ਪ੍ਰ'], ['sR', 'ਸ੍ਰ'], ['bR', 'ਬ੍ਰ'], ['kR', 'ਕ੍ਰ'],
-    ['gR', 'ਗ੍ਰ'], ['qR', 'ਤ੍ਰ'], ['dR', 'ਦ੍ਰ'], ['nR', 'ਨ੍ਰ'],
-    ['mR', 'ਮ੍ਰ'], ['hR', 'ਹ੍ਰ'], ['DR', 'ਧ੍ਰ'], ['SR', 'ਸ਼੍ਰ'],
-  ];
-  let out = expandLegacyLigatures(text, ligatures);
-  out = reorderSihari(out, consonants);
-
-  const map = {
-    'a': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
-    'y': 'ੇ',  'Y': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
-    'M': 'ਂ',  'N': 'ੰ',  '^': 'ੱ',  '`': 'ੰ',
-    'q': 'ਤ',  'w': 'ਵ',  'e': 'ੲ',  'r': 'ਰ',  't': 'ਟ',
-    'p': 'ਪ',  's': 'ਸ',  'd': 'ਦ',  'f': 'ਡ',  'g': 'ਗ',
-    'h': 'ਹ',  'j': 'ਜ',  'k': 'ਕ',  'l': 'ਲ',  'z': 'ਜ਼',
-    'x': 'ਣ',  'c': 'ਚ',  'v': 'ਭ',  'b': 'ਬ',  'n': 'ਨ',
-    'm': 'ਮ',  'Q': 'ਠ',  'E': 'ਉ',  'R': 'ੜ',  'T': 'ਥ',
-    'P': 'ਫ',  'S': 'ਸ਼', 'D': 'ਧ',  'F': 'ਢ',  'G': 'ਘ',
-    'J': 'ਝ',  'K': 'ਖ',  'C': 'ਛ',  'B': 'ਭ',
-    '<': 'ੴ',  ']': '॥',  '[': '।',
-    '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
-    '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
-    ' ': ' ',  '\n': '\n', '\r': '\r',
-  };
-  return out.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
-}
-
-// ── SHARED PREPROCESSING HELPERS ─────────────────────────────────────────────
-function expandLegacyLigatures(text, pairs) {
-  let out = text;
-  pairs.sort((a, b) => b[0].length - a[0].length);
-  pairs.forEach(([from, to]) => {
-    out = out.split(from).join(to);
-  });
-  return out;
-}
-
-function reorderSihari(text, consonantChars) {
-  const consonantSet = new Set(consonantChars);
-  const chars = Array.from(text);
-  const result = [];
-  let i = 0;
-  while (i < chars.length) {
-    if (chars[i] === 'i') {
-      let j = i + 1;
-      const preMods = [];
-      while (j < chars.length && !consonantSet.has(chars[j]) && chars[j] !== '\n' && chars[j] !== ' ') {
-        preMods.push(chars[j]);
-        j++;
-      }
-      if (j < chars.length && consonantSet.has(chars[j])) {
-        preMods.forEach(m => result.push(m));
-        result.push(chars[j]);
-        result.push('i');
-        i = j + 1;
-      } else {
-        result.push('i');
-        i++;
-      }
-    } else {
-      result.push(chars[i]);
-      i++;
-    }
-  }
-  return result.join('');
-}
-
-// ── GURBANIAKHAR / GURBANI SLIM ───────────────────────────────────────────────
-function convertGurbaniAkhar(text) {
-  const consonants = [
-    'q','w','e','r','t','p','s','d','f','g',
-    'h','j','k','l','x','c','v','b','n','m',
-    'Q','R','T','P','S','D','F','G','J','K','C','E','Z','L'
-  ];
-
-  const ligatures = [
-    ['pR', 'ਪ੍ਰ'], ['sR', 'ਸ੍ਰ'], ['bR', 'ਬ੍ਰ'], ['kR', 'ਕ੍ਰ'],
-    ['gR', 'ਗ੍ਰ'], ['qR', 'ਤ੍ਰ'], ['dR', 'ਦ੍ਰ'], ['nR', 'ਨ੍ਰ'],
-    ['mR', 'ਮ੍ਰ'], ['hR', 'ਹ੍ਰ'], ['DR', 'ਧ੍ਰ'], ['SR', 'ਸ਼੍ਰ'],
-    ['PR', 'ਫ੍ਰ'], ['vR', 'ਵ੍ਰ'], ['jR', 'ਜ੍ਰ'], ['lR', 'ਲ੍ਰ'],
-  ];
-  let out = expandLegacyLigatures(text, ligatures);
-  out = reorderSihari(out, consonants);
-
-  const map = {
-    'a': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
-    'y': 'ੇ',  'Y': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
-    'M': 'ਂ',  'N': 'ੰ',  '^': 'ੱ',  '`': 'ੰ',  '~': 'ੱ',
-    '%': '੍',
-    ']': 'ੴ',  '<': 'ੴ',  '>': '॥',  '[': '।',  '©': 'ੴ',  '®': '੍ਰ',
-    'q': 'ਤ',  'w': 'ਵ',  'e': 'ੲ',  'r': 'ਰ',  't': 'ਟ',
-    'p': 'ਪ',  's': 'ਸ',  'd': 'ਦ',  'f': 'ਡ',  'g': 'ਗ',
-    'h': 'ਹ',  'j': 'ਜ',  'k': 'ਕ',  'l': 'ਲ',
-    'x': 'ਣ',  'c': 'ਚ',  'v': 'ਵ',  'b': 'ਬ',  'n': 'ਨ',
-    'm': 'ਮ',  'Q': 'ਠ',  'R': 'ੜ',  'T': 'ਥ',  'E': 'ਉ',
-    'P': 'ਫ',  'S': 'ਸ਼', 'D': 'ਧ',  'F': 'ਢ',  'G': 'ਘ',
-    'J': 'ਝ',  'K': 'ਖ',  'C': 'ਛ',  'Z': 'ਜ਼', 'L': 'ਲ਼',
-    '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
-    '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
-    ' ': ' ',  '\n': '\n', '\r': '\r',
-  };
-
-  return out.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
-}
-
-// ── ANMOL LIPI ────────────────────────────────────────────────────────────────
-function convertAnmolLipi(text) {
-  const consonants = [
-    'q','w','e','r','t','p','s','d','f','g',
-    'h','j','k','l','z','x','c','v','b','n',
-    'm','Q','E','R','T','P','S','D','F','G',
-    'J','K','C','B','Z','L','H'
-  ];
-
-  const ligatures = [
-    ['pR', 'ਪ੍ਰ'], ['sR', 'ਸ੍ਰ'], ['bR', 'ਬ੍ਰ'], ['kR', 'ਕ੍ਰ'],
-    ['gR', 'ਗ੍ਰ'], ['qR', 'ਤ੍ਰ'], ['dR', 'ਦ੍ਰ'], ['nR', 'ਨ੍ਰ'],
-    ['mR', 'ਮ੍ਰ'], ['hR', 'ਹ੍ਰ'], ['DR', 'ਧ੍ਰ'], ['SR', 'ਸ਼੍ਰ'],
-    ['PR', 'ਫ੍ਰ'], ['vR', 'ਵ੍ਰ'], ['jR', 'ਜ੍ਰ'], ['lR', 'ਲ੍ਰ'],
-    ['zR', 'ਜ਼੍ਰ'], ['ZR', 'ਖ਼੍ਰ'],
-  ];
-  let out = expandLegacyLigatures(text, ligatures);
-  out = reorderSihari(out, consonants);
-
-  const map = {
-    'a': 'ਾ',  'A': 'ਾ',  'i': 'ਿ',  'I': 'ੀ',  'u': 'ੁ',  'U': 'ੂ',
-    'y': 'ੇ',  'Y': 'ੈ',  'o': 'ੋ',  'O': 'ੌ',
-    'M': 'ਂ',  'N': 'ੰ',  '^': 'ੱ',  '`': 'ੰ',  '~': 'ੱ',
-    '%': '੍',
-    ']': 'ੴ',  '<': 'ੴ',  '>': '॥',  '[': '।',  '|': '।',
-    'q': 'ਤ',  'w': 'ਵ',  'e': 'ੲ',  'r': 'ਰ',  't': 'ਟ',
-    'p': 'ਪ',  's': 'ਸ',  'd': 'ਦ',  'f': 'ਡ',  'g': 'ਗ',
-    'h': 'ਹ',  'j': 'ਜ',  'k': 'ਕ',  'l': 'ਲ',  'z': 'ਜ਼',
-    'x': 'ਣ',  'c': 'ਚ',  'v': 'ਭ',  'b': 'ਬ',  'n': 'ਨ',
-    'm': 'ਮ',  'Q': 'ਠ',  'E': 'ਉ',  'R': 'ੜ',  'T': 'ਥ',
-    'P': 'ਫ',  'S': 'ਸ਼', 'D': 'ਧ',  'F': 'ਢ',  'G': 'ਘ',
-    'J': 'ਝ',  'K': 'ਖ',  'C': 'ਛ',  'B': 'ਭ',  'Z': 'ਖ਼',
-    'L': 'ਲ਼', 'H': 'ਹ਼',
-    '0': '੦',  '1': '੧',  '2': '੨',  '3': '੩',  '4': '੪',
-    '5': '੫',  '6': '੬',  '7': '੭',  '8': '੮',  '9': '੯',
-    ' ': ' ',  '\n': '\n', '\r': '\r',
-  };
-
-  return out.split('').map(ch => map[ch] !== undefined ? map[ch] : ch).join('');
-}
 </script>
 </body>
 </html>
